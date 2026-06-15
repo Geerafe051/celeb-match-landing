@@ -30,6 +30,12 @@ http://localhost:8080/?send=1
 
 Продакшен публикуется через GitHub Pages из ветки `main`.
 
+Основной домен:
+
+```text
+https://celebmatch.ru/
+```
+
 Перед публикацией проверить:
 
 - ссылки в футере ведут на `privacy.html` и `personal-data.html`;
