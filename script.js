@@ -9,6 +9,9 @@ const errorText =
   'Не удалось отправить заявку. Пожалуйста, напишите нам напрямую в Telegram или попробуйте позже.';
 const successText =
   'Спасибо! Данные успешно отправлены. Мы скоро с вами свяжемся, чтобы уточнить задачу.';
+const isLocalTestMode =
+  ['localhost', '127.0.0.1', ''].includes(window.location.hostname) &&
+  !new URLSearchParams(window.location.search).has('send');
 
 document.querySelectorAll('a[href="#lead-form"]').forEach((link) => {
   link.addEventListener('click', (event) => {
@@ -79,6 +82,16 @@ function collectFormData(form) {
   return payload;
 }
 
+function saveTestLead(payload) {
+  const storageKey = 'celebMatchTestLeads';
+  const currentLeads = JSON.parse(localStorage.getItem(storageKey) || '[]');
+  currentLeads.push({
+    ...payload,
+    saved_at: new Date().toISOString(),
+  });
+  localStorage.setItem(storageKey, JSON.stringify(currentLeads));
+}
+
 leadForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -106,14 +119,18 @@ leadForm?.addEventListener('submit', async (event) => {
   setLoading(true);
 
   try {
-    await fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
-      },
-      body: JSON.stringify(payload),
-    });
+    if (isLocalTestMode) {
+      saveTestLead(payload);
+    } else {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'text/plain;charset=utf-8',
+        },
+        body: JSON.stringify(payload),
+      });
+    }
 
     form.reset();
     clearFieldErrors(form);
